@@ -1,9 +1,19 @@
 #!/bin/bash
 
+CONFIG_DIR=/etc/openvpn
+
+ENABLE_NAT=${ENABLE_NAT:-1}
+NAT_SOURCE=${NAT_SOURCE:-10.8.0.0/24}
+NAT_DEVICE=${NAT_DEVICE:-eth0}
+
 # Create device for tun interfaces
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
-    mknod /dev/net/tun c 10 200
+	mknod /dev/net/tun c 10 200
 fi
 
-openvpn --config /etc/openvpn/openvpn.conf $@
+if [[ $ENABLE_NAT = 1 ]]; then
+	iptables -t nat -A POSTROUTING -s ${NAT_SOURCE} -o ${NAT_DEVICE} -j MASQUERADE
+fi
+
+exec openvpn --config ${CONFIG_DIR}/openvpn.conf --cd ${CONFIG_DIR} $@
