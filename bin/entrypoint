@@ -2,6 +2,8 @@
 
 CONFIG_DIR=/etc/openvpn
 
+USER_STARTUP_SCRIPT=${USER_STARTUP_SCRIPT:-/usr/local/bin/entrypoint-user.sh}
+
 ENABLE_NAT=${ENABLE_NAT:-1}
 NAT_SOURCE=${NAT_SOURCE:-10.8.0.0/24}
 NAT_DEVICE=${NAT_DEVICE:-eth0}
@@ -14,6 +16,12 @@ fi
 
 if [[ $ENABLE_NAT = 1 ]]; then
 	iptables -t nat -A POSTROUTING -s ${NAT_SOURCE} -o ${NAT_DEVICE} -j MASQUERADE
+fi
+
+# Execute user startup script if it exists
+if [[ -e ${USER_STARTUP_SCRIPT} ]]; then
+	chmod a+x ${USER_STARTUP_SCRIPT}
+	${USER_STARTUP_SCRIPT}
 fi
 
 exec openvpn --config ${CONFIG_DIR}/openvpn.conf --cd ${CONFIG_DIR} $@
