@@ -8,6 +8,8 @@ ENABLE_NAT=${ENABLE_NAT:-1}
 NAT_SOURCE=${NAT_SOURCE:-10.8.0.0/24}
 NAT_DEVICE=${NAT_DEVICE:-eth0}
 
+DEBUG=${DEBUG:-0}
+
 # Create device for tun interfaces
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
@@ -22,6 +24,11 @@ fi
 if [[ -e ${USER_STARTUP_SCRIPT} ]]; then
 	chmod a+x ${USER_STARTUP_SCRIPT}
 	${USER_STARTUP_SCRIPT}
+fi
+
+# Redirect output to /dev/null unless in debug mode
+if [[ $DEBUG = 0 ]]; then
+	exec &>/dev/null
 fi
 
 exec openvpn --config ${CONFIG_DIR}/openvpn.conf --cd ${CONFIG_DIR} $@
