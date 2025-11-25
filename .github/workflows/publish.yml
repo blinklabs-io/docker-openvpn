@@ -5,6 +5,9 @@ on:
     branches: ['main']
     tags:
       - 'v*.*.*'
+  schedule:
+    # Weekly on Mondays at 00:00 UTC
+    - cron: '0 0 * * 1'
 
 concurrency: ${{ github.ref }}
 
@@ -14,6 +17,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0 https://github.com/actions/checkout/releases/tag/v6.0.0
       - name: qemu
@@ -41,6 +45,10 @@ jobs:
             type=match,pattern=v(.*),group=1
             # branch
             type=ref,event=branch
+      - name: Extract first tag
+        run: |
+          FIRST_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
+          echo "FIRST_TAG=$FIRST_TAG" >> $GITHUB_ENV
       - name: push
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0 https://github.com/docker/build-push-action/releases/tag/v6.18.0
         with:
@@ -49,6 +57,18 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        with:
+          scan-type: 'image'
+          scan-ref: 'ghcr.io/blinklabs-io/openvpn:${{ env.FIRST_TAG }}'
+          format: 'sarif'
+          output: 'trivy-results-${{ env.FIRST_TAG }}.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@d3ced5c96c16c4332e2a61eb6f3649d6f1b20bb8 # v3.31.5
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ env.FIRST_TAG }}.sarif'
       # Update Docker Hub from README
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0 https://github.com/peter-evans/dockerhub-description/releases/tag/v5.0.0
