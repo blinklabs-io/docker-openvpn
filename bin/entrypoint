@@ -26,8 +26,7 @@ fi
 
 # Execute user startup script if it exists
 if [[ -e ${USER_STARTUP_SCRIPT} ]]; then
-	chmod a+x ${USER_STARTUP_SCRIPT}
-	${USER_STARTUP_SCRIPT}
+	bash ${USER_STARTUP_SCRIPT}
 fi
 
 # Redirect output to /dev/null unless in debug mode
