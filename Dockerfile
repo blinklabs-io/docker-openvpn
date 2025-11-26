@@ -12,7 +12,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && chmod +x /usr/local/bin/*
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD pgrep -f openvpn || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD grep -q openvpn /proc/1/cmdline || exit 1
 
 EXPOSE 1194/udp
 
