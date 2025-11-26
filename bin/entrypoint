@@ -18,6 +18,10 @@ fi
 
 if [[ $ENABLE_NAT = 1 ]]; then
 	iptables -t nat -A POSTROUTING -s ${NAT_SOURCE} -o ${NAT_DEVICE} -j MASQUERADE
+	# Basic kill switch: Drop forwarded traffic by default, allow only VPN-related
+	iptables -P FORWARD DROP
+	iptables -A FORWARD -i tun+ -o ${NAT_DEVICE} -j ACCEPT
+	iptables -A FORWARD -i ${NAT_DEVICE} -o tun+ -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 fi
 
 # Execute user startup script if it exists
