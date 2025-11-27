@@ -26,7 +26,18 @@ fi
 
 # Execute user startup script if it exists
 if [[ -e ${USER_STARTUP_SCRIPT} ]]; then
-	bash ${USER_STARTUP_SCRIPT}
+	__ret=0
+	if [[ -x ${USER_STARTUP_SCRIPT} ]]; then
+		${USER_STARTUP_SCRIPT}
+		__ret=$?
+	else
+		chmod a+x ${USER_STARTUP_SCRIPT} || ls -l ${USER_STARTUP_SCRIPT}
+		${USER_STARTUP_SCRIPT}
+		__ret=$?
+	fi
+	if [[ ${__ret} -ne 0 ]]; then
+		echo "WARN: User startup script exited with error code ${__ret}" >&2
+	fi
 fi
 
 # Redirect output to /dev/null unless in debug mode
