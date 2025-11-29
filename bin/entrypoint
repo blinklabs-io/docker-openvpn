@@ -16,6 +16,9 @@ if [ ! -c /dev/net/tun ]; then
 	mknod /dev/net/tun c 10 200
 fi
 
+# Enable IP forwarding
+echo 1 > /proc/sys/net/ipv4/ip_forward
+
 if [[ $ENABLE_NAT = 1 ]]; then
 	iptables -t nat -A POSTROUTING -s ${NAT_SOURCE} -o ${NAT_DEVICE} -j MASQUERADE
 	# Basic kill switch: Drop forwarded traffic by default, allow only VPN-related
