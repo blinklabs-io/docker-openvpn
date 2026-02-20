@@ -58,7 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # v0.33.1
+        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # v0.34.0
         with:
           scan-type: 'image'
           scan-ref: 'ghcr.io/blinklabs-io/openvpn:${{ env.FIRST_TAG }}'
